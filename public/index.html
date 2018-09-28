@@ -1,0 +1,103 @@
+<html>
+<head>
+    <title></title>
+
+
+    <script src="jquery-3.2.1.js"></script>
+    <script>
+
+        $(document).ready(function () {
+            console.log("ready");
+            let urlParams = new URLSearchParams(window.location.search);
+            let link = urlParams.get('link');
+            if (link) {
+                $("#input_url").val(link);
+                updateButtonWhenValidUrl();
+            }
+
+            $("#input_url").keyup(function () {
+                console.log($("#input_url").val());
+                updateButtonWhenValidUrl();
+            });
+        });
+
+        function updateButtonWhenValidUrl() {
+            $("#bt_download").prop('disabled', $("#input_url").val().indexOf("www.sportograf.com") === -1);
+        }
+
+        function getPictures() {
+            var input = document.getElementById('input_url');
+            var url = input.value;
+            let urlParams = new URLSearchParams(window.location.search);
+            urlParams.set('link', url);
+            var newurl = window.location.protocol + "//" + window.location.host + window.location.pathname + '?' + urlParams;
+            window.history.pushState({path: newurl}, '', newurl);
+            $.getJSON('http://www.whateverorigin.org/get?url=' + encodeURIComponent(url) + '&callback=?', function (data) {
+                //alert(data.contents);
+                var section = $("section", data.contents).find(".panel-default");
+                var images = section.find("img").get();
+                //console.log(images);
+                // images = images.slice(0, 1);
+                var i = 0;
+                images.forEach(function (img) {
+                    i++;
+                    console.log(img.src);
+                    let newUrl = img.src.replace("gallery", "preview");
+                    //window.open(newUrl);
+                    let downloadUrl = newUrl;
+                    //let downloadUrl = 'http://www.whateverorigin.org/get?url=' + encodeURIComponent(newUrl);
+                    console.log("Download image", newUrl);
+                    window.open(downloadUrl);
+                    // forceDownload(downloadUrl, "picture" + i + ".jpg");
+                });
+            });
+
+            function forceDownload2(url, fileName) {
+                var xhr = new XMLHttpRequest();
+                xhr.open("GET", url, true);
+                xhr.responseType = "blob";
+                xhr.onload = function () {
+                    var urlCreator = window.URL || window.webkitURL;
+                    var imageUrl = urlCreator.createObjectURL(this.response);
+                    var tag = document.createElement('a');
+                    tag.href = imageUrl;
+                    tag.download = fileName;
+                    tag.val = filename;
+                    document.body.appendChild(tag);
+                    // tag.click();
+                    // document.body.removeChild(tag);
+                }
+                xhr.send();
+            }
+
+            function forceDownload(url, fileName) {
+
+                var a = document.createElement('a');
+                a.download = fileName;
+                a.href = url;
+                a.textContent = 'Download ready';
+
+                // a.dataset.downloadurl = [MIME_TYPE, a.download, a.href].join(':');
+                a.draggable = true; // Don't really need, but good practice.
+                a.classList.add('dragout');
+
+                document.body.appendChild(a);
+                a.click();
+            }
+        }
+
+
+    </script>
+
+</head>
+<body>
+
+<form>
+    Sportgraf-Link: <input type="text" id="input_url"/>
+    <input type="button" id="bt_download" onClick="getPictures()" value="Gib mir meine Bilder" disabled="true"></input>
+</form>
+
+
+</body>
+</html>
+
